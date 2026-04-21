@@ -40,7 +40,7 @@ def analyze_apple(image_path: str) -> str:
     for attempt in range(max_retries):
         try:
             response = client.models.generate_content(
-                model="models/gemini-2.5-flash",
+                model="gemini-1.5-flash",
                 contents=[
                     PROMPT,
                     types.Part.from_bytes(data=image_bytes, mime_type=mime_type)
@@ -51,15 +51,15 @@ def analyze_apple(image_path: str) -> str:
         except Exception as e:
             error_msg = str(e).lower()
 
-            if "429" in error_msg or "quota" in error_msg or "rate" in error_msg:
+            # handle 429 + 503 + overload errors
+            if any(x in error_msg for x in ["429", "quota", "rate", "503", "unavailable", "overloaded"]):
                 if attempt < max_retries - 1:
                     time.sleep(wait_seconds)
-                    wait_seconds *= 2  # wait longer each retry: 10s → 20s → 40s
+                    wait_seconds *= 2
                 else:
-                    raise Exception("Too many requests. Please wait a moment and try again.")
+                    return "⚠ AI is busy right now. Please try again in a few seconds."
             else:
-                raise  # not a rate limit error, raise immediately
-
+                return f"⚠ Unexpected error: {str(e)}"
 
 if __name__ == "__main__":
     import sys
