@@ -468,29 +468,57 @@ function handleFile(file){
 /* ── INSPECT ── */
 async function runInspect(){
   if(!selectedFile)return;
+
   const btn=document.getElementById('inspect-btn');
   btn.disabled=true;
+
   document.getElementById('loading').style.display='block';
   document.getElementById('result-section').style.display='none';
   document.getElementById('not-apple-section').style.display='none';
   document.getElementById('error-box').style.display='none';
+
   const formData=new FormData();
   formData.append('image',selectedFile);
+
   try{
     const res=await fetch('/inspect',{method:'POST',body:formData});
     const data=await res.json();
-    if(data.error)throw new Error(data.error);
+
+    // ✅ FIX: never throw raw backend errors
+    if(data.error){
+      return showFriendlyError(data.error);
+    }
+
     showResult(data.result);
+
   }catch(err){
-    const eb=document.getElementById('error-box');
-    eb.textContent='⚠ '+err.message;
-    eb.style.display='block';
+    showFriendlyError(err.message);
   }finally{
     document.getElementById('loading').style.display='none';
     btn.disabled=false;
   }
 }
 
+  function showFriendlyError(errorMsg){
+  const eb=document.getElementById('error-box');
+
+  let msg="⚠ Something went wrong. Please try again.";
+
+  errorMsg=(errorMsg||"").toLowerCase();
+
+  if(errorMsg.includes("503") || errorMsg.includes("unavailable") || errorMsg.includes("overloaded")){
+    msg="⚠ AI is busy right now. Please try again in a few seconds.";
+  }
+  else if(errorMsg.includes("429") || errorMsg.includes("quota") || errorMsg.includes("rate")){
+    msg="⚠ Too many requests. Please wait a moment before trying again.";
+  }
+  else if(errorMsg.includes("network")){
+    msg="⚠ Network issue. Please check your connection.";
+  }
+
+  eb.textContent=msg;
+  eb.style.display='block';
+}
 /* ── SHOW RESULT ── */
 function showResult(text){
   if(text.includes("not an apple")){
