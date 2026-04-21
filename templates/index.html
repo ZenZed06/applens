@@ -1,0 +1,558 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>APPLENS</title>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,wght@0,300;0,600;0,900;1,300&family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet"/>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#0b0f0c;--surface:#111812;--surface2:#172019;
+  --border:#1f2e22;--border2:#2a3d2e;
+  --green:#4ade80;--red:#f87171;--amber:#fbbf24;
+  --text:#e8f0e9;--muted:#6b8f72;--muted2:#3d5c42;
+}
+body{
+  background:var(--bg);color:var(--text);font-family:'Inter',sans-serif;
+  min-height:100vh;display:flex;flex-direction:column;align-items:center;
+  padding:48px 20px 80px;
+  background-image:
+    radial-gradient(ellipse 60% 40% at 15% 10%,rgba(34,84,61,0.25) 0%,transparent 60%),
+    radial-gradient(ellipse 50% 35% at 85% 85%,rgba(15,40,20,0.3) 0%,transparent 60%);
+}
+.header{text-align:center;margin-bottom:52px}
+.apple-ring{
+  width:80px;height:80px;border-radius:50%;border:1.5px solid var(--border2);
+  display:flex;align-items:center;justify-content:center;
+  margin:0 auto 20px;
+  background:radial-gradient(circle at 40% 35%,#1a2e1d 0%,#0d160f 100%);
+  position:relative;
+}
+.apple-ring::before{content:'';position:absolute;inset:-4px;border-radius:50%;border:1px solid rgba(74,222,128,0.15)}
+.apple-svg{width:38px;height:38px}
+h1{font-family:'Fraunces',serif;font-size:2.6rem;font-weight:900;letter-spacing:-1.5px;line-height:1;color:#fff}
+h1 span{color:var(--green)}
+.tagline{margin-top:10px;color:var(--muted);font-size:0.85rem;letter-spacing:0.8px;text-transform:uppercase}
+.card{
+  width:100%;max-width:540px;background:var(--surface);
+  border:1px solid var(--border);border-radius:24px;padding:32px;
+  position:relative;overflow:hidden;
+}
+.card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(74,222,128,0.3),transparent);
+}
+
+/* INPUT MODE TOGGLE */
+.input-toggle{
+  display:flex;gap:8px;margin-bottom:20px;
+  background:var(--surface2);border:1px solid var(--border);
+  border-radius:12px;padding:4px;
+}
+.toggle-btn{
+  flex:1;padding:9px 12px;border:none;border-radius:9px;
+  font-family:'Inter',sans-serif;font-size:0.8rem;font-weight:500;
+  cursor:pointer;transition:all 0.2s ease;letter-spacing:0.2px;
+  display:flex;align-items:center;justify-content:center;gap:7px;
+  background:transparent;color:var(--muted);
+}
+.toggle-btn.active{background:var(--surface);color:var(--text);border:1px solid var(--border2);box-shadow:0 1px 4px rgba(0,0,0,0.3)}
+.toggle-btn svg{width:14px;height:14px;flex-shrink:0}
+
+/* CAMERA PANEL */
+#camera-panel{display:none}
+.camera-wrap{
+  border:1.5px solid var(--border2);border-radius:16px;overflow:hidden;
+  background:#000;position:relative;
+}
+#camera-video{width:100%;max-height:260px;display:block;object-fit:cover}
+.camera-controls{
+  display:flex;gap:10px;margin-top:12px;
+}
+#snap-btn{
+  flex:1;padding:13px;background:var(--green);color:#0b1a0d;
+  font-family:'Inter',sans-serif;font-size:0.88rem;font-weight:600;
+  border:none;border-radius:12px;cursor:pointer;transition:all 0.2s ease;
+  display:flex;align-items:center;justify-content:center;gap:8px;
+}
+#snap-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(74,222,128,0.25)}
+#snap-btn svg{width:16px;height:16px}
+#retake-btn{
+  padding:13px 18px;background:transparent;color:var(--muted);
+  font-family:'Inter',sans-serif;font-size:0.82rem;
+  border:1px solid var(--border2);border-radius:12px;cursor:pointer;transition:all 0.2s;
+  display:none;
+}
+#retake-btn:hover{color:var(--text);background:var(--surface2)}
+.camera-hint{margin-top:10px;font-size:0.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.camera-hint::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+#camera-error{display:none;margin-top:10px;background:rgba(248,113,113,0.08);border:1px solid rgba(248,113,113,0.25);border-radius:10px;padding:10px 14px;font-size:0.82rem;color:var(--red)}
+
+/* UPLOAD PANEL */
+#upload-panel{}
+.drop-zone{
+  border:1.5px dashed var(--border2);border-radius:16px;padding:44px 20px;
+  text-align:center;cursor:pointer;transition:all 0.2s ease;position:relative;
+  background:rgba(74,222,128,0.02);
+}
+.drop-zone:hover{border-color:rgba(74,222,128,0.5);background:rgba(74,222,128,0.05)}
+.drop-zone.drag-over{border-color:var(--green);background:rgba(74,222,128,0.08);transform:scale(1.01)}
+.drop-zone input{position:absolute;inset:0;opacity:0;cursor:pointer;width:100%;height:100%}
+.upload-icon{
+  width:48px;height:48px;border-radius:12px;background:var(--surface2);
+  border:1px solid var(--border2);display:flex;align-items:center;justify-content:center;margin:0 auto 14px;
+}
+.upload-icon svg{width:22px;height:22px;stroke:var(--muted)}
+.drop-title{font-size:0.95rem;font-weight:500;color:var(--text);margin-bottom:5px}
+.drop-hint{font-size:0.78rem;color:var(--muted)}
+.drop-hint span{color:var(--green);font-weight:500;cursor:pointer}
+#preview-section{display:none;margin-top:20px}
+.preview-wrap{position:relative;border-radius:14px;overflow:hidden}
+#preview-img{width:100%;max-height:260px;object-fit:cover;display:block;border-radius:14px;border:1px solid var(--border)}
+.preview-overlay{position:absolute;top:10px;right:10px}
+.remove-btn{
+  width:32px;height:32px;background:rgba(0,0,0,0.7);border:1px solid rgba(255,255,255,0.15);
+  border-radius:8px;color:#fff;font-size:14px;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;transition:background 0.2s;
+}
+.remove-btn:hover{background:rgba(248,113,113,0.4)}
+.preview-label{margin-top:10px;font-size:0.78rem;color:var(--muted);display:flex;align-items:center;gap:6px}
+.preview-label::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--green);flex-shrink:0}
+#inspect-btn{
+  display:none;width:100%;margin-top:16px;padding:15px;
+  background:var(--green);color:#0b1a0d;font-family:'Inter',sans-serif;
+  font-size:0.9rem;font-weight:600;letter-spacing:0.3px;
+  border:none;border-radius:12px;cursor:pointer;transition:all 0.2s ease;
+}
+#inspect-btn:hover{transform:translateY(-1px);box-shadow:0 8px 28px rgba(74,222,128,0.25)}
+#inspect-btn:active{transform:translateY(0);box-shadow:none}
+#inspect-btn:disabled{opacity:0.4;cursor:not-allowed;transform:none;box-shadow:none}
+#loading{display:none;text-align:center;padding:36px 0 8px}
+.loader-ring{
+  width:48px;height:48px;border:2px solid var(--border2);border-top-color:var(--green);
+  border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 14px;
+}
+@keyframes spin{to{transform:rotate(360deg)}}
+.loading-text{color:var(--muted);font-size:0.85rem}
+.loading-text span{display:inline-block;animation:pulse 1.4s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:0.4}50%{opacity:1}}
+
+/* APPLE RESULT */
+#result-section{display:none;margin-top:24px;animation:fadeUp 0.4s ease}
+@keyframes fadeUp{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.result-divider{border:none;border-top:1px solid var(--border);margin-bottom:24px}
+.result-top{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:20px}
+.stage-num{font-family:'Fraunces',serif;font-size:0.7rem;font-weight:300;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:3px}
+.stage-name{font-family:'Fraunces',serif;font-size:1.7rem;font-weight:600;letter-spacing:-0.5px;line-height:1}
+.edible-pill{padding:5px 14px;border-radius:20px;font-size:0.72rem;font-weight:600;letter-spacing:1px;text-transform:uppercase;flex-shrink:0}
+.pill-yes{background:rgba(74,222,128,0.12);color:var(--green);border:1px solid rgba(74,222,128,0.3)}
+.pill-no{background:rgba(248,113,113,0.12);color:var(--red);border:1px solid rgba(248,113,113,0.3)}
+.meter-wrap{margin-bottom:20px}
+.meter-top{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:8px}
+.meter-label{font-size:0.72rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
+.meter-value{font-family:'Fraunces',serif;font-size:2rem;font-weight:900;line-height:1;letter-spacing:-1px}
+.meter-track{height:8px;background:var(--surface2);border-radius:8px;border:1px solid var(--border);overflow:hidden}
+.meter-fill{height:100%;border-radius:8px;width:0%;transition:width 1s cubic-bezier(0.34,1.56,0.64,1)}
+.stage-dots{display:flex;gap:6px;margin-bottom:20px;align-items:center}
+.sdot{flex:1;height:4px;border-radius:4px;background:var(--border2);transition:background 0.4s ease}
+.sdot-label{font-size:0.65rem;color:var(--muted2);white-space:nowrap}
+.sdot-label:last-child{text-align:right}
+.reason-box{background:var(--surface2);border:1px solid var(--border);border-radius:12px;padding:14px 16px}
+.reason-label{font-size:0.68rem;color:var(--muted);text-transform:uppercase;letter-spacing:1px;margin-bottom:7px;font-weight:500}
+.reason-text{font-size:0.875rem;line-height:1.6;color:var(--text);font-weight:300}
+
+/* NOT AN APPLE CARD */
+#not-apple-section{display:none;margin-top:24px;animation:fadeUp 0.4s ease}
+.not-apple-card{
+  border:1px solid rgba(251,191,36,0.25);border-radius:16px;padding:28px 24px;
+  text-align:center;background:rgba(251,191,36,0.04);position:relative;overflow:hidden;
+}
+.not-apple-card::before{
+  content:'';position:absolute;top:0;left:0;right:0;height:1px;
+  background:linear-gradient(90deg,transparent,rgba(251,191,36,0.4),transparent);
+}
+.brain-icon{
+  width:56px;height:56px;border-radius:50%;background:rgba(251,191,36,0.1);
+  border:1px solid rgba(251,191,36,0.2);display:flex;align-items:center;
+  justify-content:center;margin:0 auto 16px;font-size:24px;
+}
+.not-apple-title{font-family:'Fraunces',serif;font-size:1.2rem;font-weight:600;color:var(--amber);margin-bottom:10px;letter-spacing:-0.3px}
+.not-apple-msg{font-size:0.875rem;line-height:1.6;color:var(--muted);font-weight:300;max-width:340px;margin:0 auto}
+.not-apple-badge{
+  display:inline-flex;align-items:center;gap:6px;margin-top:16px;padding:6px 14px;
+  background:rgba(251,191,36,0.08);border:1px solid rgba(251,191,36,0.2);border-radius:20px;
+  font-size:0.72rem;font-weight:600;color:var(--amber);letter-spacing:0.8px;text-transform:uppercase;
+}
+.not-apple-badge::before{content:'';width:6px;height:6px;border-radius:50%;background:var(--amber)}
+.scan-again{
+  display:none;width:100%;margin-top:14px;padding:11px;
+  background:transparent;color:var(--muted);font-family:'Inter',sans-serif;
+  font-size:0.82rem;border:1px solid var(--border2);border-radius:10px;cursor:pointer;transition:all 0.2s;
+}
+.scan-again:hover{color:var(--text);background:var(--surface2)}
+#error-box{
+  display:none;margin-top:16px;background:rgba(248,113,113,0.08);
+  border:1px solid rgba(248,113,113,0.25);border-radius:10px;
+  padding:12px 16px;font-size:0.83rem;color:var(--red);
+}
+.footer{margin-top:36px;color:var(--muted2);font-size:0.73rem;text-align:center;letter-spacing:0.3px}
+.s1{color:#4ade80}.s2{color:#fbbf24}.s3{color:#fb923c}.s4{color:#f87171}
+.fill1{background:linear-gradient(90deg,#4ade80,#22c55e)}
+.fill2{background:linear-gradient(90deg,#fbbf24,#f59e0b)}
+.fill3{background:linear-gradient(90deg,#fb923c,#f97316)}
+.fill4{background:linear-gradient(90deg,#f87171,#ef4444)}
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="apple-ring">
+    <svg class="apple-svg" viewBox="0 0 38 38" fill="none" xmlns="http://www.w3.org/2000/svg">
+      <path d="M19 6C19 6 20.5 2 24 2C24 5.5 21 6.5 19 6Z" fill="#4ade80" opacity="0.9"/>
+      <path d="M19 8C14 8 9 12.5 9 20C9 27 13 34 19 34C25 34 29 27 29 20C29 12.5 24 8 19 8Z" fill="#dc2626"/>
+      <path d="M19 8C17 8 14.5 8.8 13 10.5C14.5 9.5 17 9 19 9C21 9 23.5 9.5 25 10.5C23.5 8.8 21 8 19 8Z" fill="#ef4444" opacity="0.5"/>
+      <ellipse cx="14" cy="16" rx="2.5" ry="4" fill="rgba(255,255,255,0.15)" transform="rotate(-15 14 16)"/>
+    </svg>
+  </div>
+  <h1>APP<span>LENS</span></h1>
+  <p class="tagline">AI-powered freshness analysis</p>
+</header>
+
+<div class="card">
+
+  <!-- INPUT MODE TOGGLE -->
+  <div class="input-toggle">
+    <button class="toggle-btn active" id="btn-upload" onclick="switchMode('upload')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+        <polyline points="17 8 12 3 7 8"/>
+        <line x1="12" y1="3" x2="12" y2="15"/>
+      </svg>
+      Upload Photo
+    </button>
+    <button class="toggle-btn" id="btn-camera" onclick="switchMode('camera')">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+        <path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/>
+        <circle cx="12" cy="13" r="4"/>
+      </svg>
+      Take a Photo
+    </button>
+  </div>
+
+  <!-- CAMERA PANEL -->
+  <div id="camera-panel">
+    <div class="camera-wrap">
+      <video id="camera-video" autoplay playsinline></video>
+      <canvas id="camera-canvas" style="display:none"></canvas>
+    </div>
+    <div id="camera-error"></div>
+    <div class="camera-controls">
+      <button id="snap-btn" onclick="snapPhoto()">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><circle cx="12" cy="12" r="3" fill="currentColor" stroke="none"/>
+        </svg>
+        Capture
+      </button>
+      <button id="retake-btn" onclick="retakePhoto()">Retake</button>
+    </div>
+    <div class="camera-hint" id="camera-hint">Live camera · Position apple in frame</div>
+  </div>
+
+  <!-- UPLOAD PANEL -->
+  <div id="upload-panel">
+    <div class="drop-zone" id="drop-zone">
+      <input type="file" id="file-input" accept="image/jpeg,image/png,image/webp"/>
+      <div class="upload-icon">
+        <svg viewBox="0 0 24 24" fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+          <polyline points="17 8 12 3 7 8"/>
+          <line x1="12" y1="3" x2="12" y2="15"/>
+        </svg>
+      </div>
+      <div class="drop-title">Drop your apple photo here</div>
+      <div class="drop-hint">or <span onclick="document.getElementById('file-input').click()">browse files</span> &nbsp;·&nbsp; JPG, PNG, WEBP</div>
+    </div>
+
+    <div id="preview-section">
+      <div class="preview-wrap">
+        <img id="preview-img" src="" alt="Apple preview"/>
+        <div class="preview-overlay">
+          <button class="remove-btn" onclick="resetAll()">✕</button>
+        </div>
+      </div>
+      <div class="preview-label" id="file-name-label">image.jpg</div>
+    </div>
+  </div>
+
+  <button id="inspect-btn" onclick="runInspect()">Analyze Apple</button>
+
+  <div id="loading">
+    <div class="loader-ring"></div>
+    <div class="loading-text"><span>Analyzing freshness...</span></div>
+  </div>
+
+  <div id="error-box"></div>
+
+  <!-- NORMAL APPLE RESULT -->
+  <div id="result-section">
+    <hr class="result-divider"/>
+    <div class="result-top">
+      <div>
+        <div class="stage-num" id="res-stage-num">Stage 1 of 4</div>
+        <div class="stage-name" id="res-stage-name">Fresh</div>
+      </div>
+      <div class="edible-pill" id="res-edible-pill">Edible</div>
+    </div>
+    <div class="meter-wrap">
+      <div class="meter-top">
+        <span class="meter-label">Freshness</span>
+        <span class="meter-value" id="res-pct">—</span>
+      </div>
+      <div class="meter-track">
+        <div class="meter-fill" id="res-bar"></div>
+      </div>
+    </div>
+    <div class="stage-dots">
+      <span class="sdot-label">Fresh</span>
+      <div class="sdot" id="dot-1"></div>
+      <div class="sdot" id="dot-2"></div>
+      <div class="sdot" id="dot-3"></div>
+      <div class="sdot" id="dot-4"></div>
+      <span class="sdot-label">Rotten</span>
+    </div>
+    <div class="reason-box">
+      <div class="reason-label">Analysis</div>
+      <div class="reason-text" id="res-reason">—</div>
+    </div>
+  </div>
+
+  <!-- NOT AN APPLE RESULT -->
+  <div id="not-apple-section">
+    <div class="not-apple-card">
+      <div class="brain-icon">🧠</div>
+      <div class="not-apple-title">Nice try — that's not an apple.</div>
+      <div class="not-apple-msg" id="not-apple-msg">I'm smart enough to know that's not an apple. Please upload an actual apple image for inspection.</div>
+      <div class="not-apple-badge">Apple required</div>
+    </div>
+  </div>
+
+  <button class="scan-again" id="scan-again-btn" onclick="resetAll()">Scan another apple</button>
+
+</div>
+
+<div class="footer">AI analysis is indicative only · Use your own judgment before consuming</div>
+
+<script>
+const stageNames={1:'Fresh',2:'Slightly Aged',3:'Deteriorating',4:'Rotten'};
+const stageColors={1:'s1',2:'s2',3:'s3',4:'s4'};
+const fillClasses={1:'fill1',2:'fill2',3:'fill3',4:'fill4'};
+const dotColors=['#4ade80','#fbbf24','#fb923c','#f87171'];
+let selectedFile=null;
+let currentMode='upload';
+let cameraStream=null;
+let snapped=false;
+
+/* ── MODE SWITCH ── */
+function switchMode(mode){
+  currentMode=mode;
+  document.getElementById('btn-upload').classList.toggle('active',mode==='upload');
+  document.getElementById('btn-camera').classList.toggle('active',mode==='camera');
+  document.getElementById('upload-panel').style.display=mode==='upload'?'block':'none';
+  document.getElementById('camera-panel').style.display=mode==='camera'?'block':'none';
+  document.getElementById('result-section').style.display='none';
+  document.getElementById('not-apple-section').style.display='none';
+  document.getElementById('scan-again-btn').style.display='none';
+  document.getElementById('error-box').style.display='none';
+  document.getElementById('inspect-btn').style.display='none';
+  document.getElementById('res-bar').style.width='0%';
+  if(mode==='camera'){
+    snapped=false;
+    startCamera();
+  } else {
+    stopCamera();
+  }
+}
+
+/* ── CAMERA ── */
+async function startCamera(){
+  const errEl=document.getElementById('camera-error');
+  errEl.style.display='none';
+  try{
+    cameraStream=await navigator.mediaDevices.getUserMedia({video:{facingMode:{ideal:'environment'}},audio:false});
+    const video=document.getElementById('camera-video');
+    video.srcObject=cameraStream;
+    video.style.display='block';
+    document.getElementById('snap-btn').style.display='flex';
+    document.getElementById('retake-btn').style.display='none';
+    document.getElementById('camera-hint').textContent='Live camera · Position apple in frame';
+    snapped=false;
+  }catch(e){
+    errEl.textContent='⚠ Camera access denied or unavailable. Please allow camera permission and try again.';
+    errEl.style.display='block';
+    document.getElementById('snap-btn').style.display='none';
+  }
+}
+
+function stopCamera(){
+  if(cameraStream){cameraStream.getTracks().forEach(t=>t.stop());cameraStream=null;}
+  const video=document.getElementById('camera-video');
+  video.srcObject=null;
+}
+
+function snapPhoto(){
+  const video=document.getElementById('camera-video');
+  const canvas=document.getElementById('camera-canvas');
+  canvas.width=video.videoWidth;
+  canvas.height=video.videoHeight;
+  canvas.getContext('2d').drawImage(video,0,0);
+  stopCamera();
+  video.style.display='none';
+  canvas.style.display='block';
+  canvas.style.width='100%';
+  canvas.style.maxHeight='260px';
+  canvas.style.objectFit='cover';
+  canvas.style.borderRadius='14px';
+  document.getElementById('snap-btn').style.display='none';
+  document.getElementById('retake-btn').style.display='block';
+  document.getElementById('camera-hint').textContent='Photo captured · Ready to analyze';
+  snapped=true;
+  canvas.toBlob(blob=>{
+    selectedFile=new File([blob],'camera-capture.jpg',{type:'image/jpeg'});
+    document.getElementById('inspect-btn').style.display='block';
+  },'image/jpeg',0.92);
+}
+
+function retakePhoto(){
+  const video=document.getElementById('camera-video');
+  const canvas=document.getElementById('camera-canvas');
+  canvas.style.display='none';
+  video.style.display='block';
+  document.getElementById('inspect-btn').style.display='none';
+  document.getElementById('result-section').style.display='none';
+  document.getElementById('not-apple-section').style.display='none';
+  document.getElementById('scan-again-btn').style.display='none';
+  document.getElementById('res-bar').style.width='0%';
+  selectedFile=null;snapped=false;
+  startCamera();
+}
+
+/* ── UPLOAD ── */
+const fileInput=document.getElementById('file-input');
+const dropZone=document.getElementById('drop-zone');
+fileInput.addEventListener('change',e=>{if(e.target.files[0])handleFile(e.target.files[0])});
+dropZone.addEventListener('dragover',e=>{e.preventDefault();dropZone.classList.add('drag-over')});
+dropZone.addEventListener('dragleave',()=>dropZone.classList.remove('drag-over'));
+dropZone.addEventListener('drop',e=>{
+  e.preventDefault();dropZone.classList.remove('drag-over');
+  if(e.dataTransfer.files[0])handleFile(e.dataTransfer.files[0]);
+});
+
+function handleFile(file){
+  selectedFile=file;
+  const reader=new FileReader();
+  reader.onload=e=>{
+    document.getElementById('preview-img').src=e.target.result;
+    document.getElementById('file-name-label').textContent=file.name;
+    document.getElementById('preview-section').style.display='block';
+    document.getElementById('inspect-btn').style.display='block';
+    document.getElementById('result-section').style.display='none';
+    document.getElementById('not-apple-section').style.display='none';
+    document.getElementById('scan-again-btn').style.display='none';
+    document.getElementById('error-box').style.display='none';
+    dropZone.style.display='none';
+  };
+  reader.readAsDataURL(file);
+}
+
+/* ── INSPECT ── */
+async function runInspect(){
+  if(!selectedFile)return;
+  const btn=document.getElementById('inspect-btn');
+  btn.disabled=true;
+  document.getElementById('loading').style.display='block';
+  document.getElementById('result-section').style.display='none';
+  document.getElementById('not-apple-section').style.display='none';
+  document.getElementById('error-box').style.display='none';
+  const formData=new FormData();
+  formData.append('image',selectedFile);
+  try{
+    const res=await fetch('/inspect',{method:'POST',body:formData});
+    const data=await res.json();
+    if(data.error)throw new Error(data.error);
+    showResult(data.result);
+  }catch(err){
+    const eb=document.getElementById('error-box');
+    eb.textContent='⚠ '+err.message;
+    eb.style.display='block';
+  }finally{
+    document.getElementById('loading').style.display='none';
+    btn.disabled=false;
+  }
+}
+
+/* ── SHOW RESULT ── */
+function showResult(text){
+  if(text.includes("not an apple")){
+    document.getElementById('not-apple-msg').textContent=text.replace('🧠','').trim();
+    document.getElementById('not-apple-section').style.display='block';
+    document.getElementById('result-section').style.display='none';
+    document.getElementById('inspect-btn').style.display='none';
+    document.getElementById('scan-again-btn').style.display='block';
+    return;
+  }
+  const stageMatch=text.match(/Stage:\s*([1-4])/);
+  const freshMatch=text.match(/Freshness:\s*(\d+)/);
+  const edibleMatch=text.match(/Edible:\s*(Yes|No)/i);
+  const reasonMatch=text.match(/Reason:\s*([\s\S]+)/i);
+  const stage=stageMatch?parseInt(stageMatch[1]):1;
+  const pct=freshMatch?parseInt(freshMatch[1]):50;
+  const edible=edibleMatch?edibleMatch[1].toLowerCase()==='yes':true;
+  const reason=reasonMatch?reasonMatch[1].trim():text;
+  document.getElementById('res-stage-num').textContent='Stage '+stage+' of 4';
+  const nameEl=document.getElementById('res-stage-name');
+  nameEl.textContent=stageNames[stage]||'Unknown';
+  nameEl.className='stage-name '+(stageColors[stage]||'');
+  const pctEl=document.getElementById('res-pct');
+  pctEl.textContent=pct+'%';
+  pctEl.className='meter-value '+(stageColors[stage]||'');
+  const bar=document.getElementById('res-bar');
+  bar.className='meter-fill '+(fillClasses[stage]||'fill1');
+  setTimeout(()=>{bar.style.width=pct+'%';},80);
+  for(let i=1;i<=4;i++){
+    const dot=document.getElementById('dot-'+i);
+    dot.style.background=i<=stage?dotColors[stage-1]:'';
+  }
+  const pill=document.getElementById('res-edible-pill');
+  pill.style.display='';
+  pill.textContent=edible?'✓ Edible':'✕ Not Edible';
+  pill.className='edible-pill '+(edible?'pill-yes':'pill-no');
+  document.getElementById('res-reason').textContent=reason;
+  document.getElementById('result-section').style.display='block';
+  document.getElementById('inspect-btn').style.display='none';
+  document.getElementById('scan-again-btn').style.display='block';
+}
+
+/* ── RESET ── */
+function resetAll(){
+  selectedFile=null;fileInput.value='';snapped=false;
+  document.getElementById('preview-section').style.display='none';
+  document.getElementById('inspect-btn').style.display='none';
+  document.getElementById('result-section').style.display='none';
+  document.getElementById('not-apple-section').style.display='none';
+  document.getElementById('scan-again-btn').style.display='none';
+  document.getElementById('error-box').style.display='none';
+  document.getElementById('loading').style.display='none';
+  document.getElementById('res-bar').style.width='0%';
+  document.getElementById('res-edible-pill').style.display='';
+  dropZone.style.display='block';
+  if(currentMode==='camera'){
+    const canvas=document.getElementById('camera-canvas');
+    canvas.style.display='none';
+    document.getElementById('camera-video').style.display='block';
+    startCamera();
+  }
+}
+</script>
+</body>
+</html>
